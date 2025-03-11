@@ -127,3 +127,5 @@
 2025-02-10 19:24:00 | DEBUG | repo=open-gpu-kernel-modules | action=commit
 2025-10-19 17:33:00 | DEBUG | repo=open-gpu-kernel-modules | action=test | passed=true
 2025-04-17 19:44:00 | INFO | repo=open-gpu-kernel-modules | action=commit
+2025-06-25 18:13:00 | INFO | repo=open-gpu-kernel-modules | action=test | passed=true
+2025-03-11 07:14:00 | WARN | repo=open-gpu-kernel-modules | action=commit
