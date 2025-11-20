@@ -113,6 +113,9 @@
 // This regkey ensures DPLib takes into account Displayport++ supports HDMI.
 #define NV_DP_REGKEY_HDMI_ON_DP_PLUS_PLUS                         "HDMI_ON_DP_PLUS_PLUS"
 
+// This regkey ensures DP IMP takes DP tunnelling BW into account while calculating DSC BPP
+#define NV_DP_REGKEY_OPTIMIZE_DSC_BPP_FOR_TUNNELLING_BW            "OPTIMIZE_DSC_BPP_FOR_TUNNELLING_BW"
+
 // Data Base used to store all the regkey values.
 // The actual data base is declared statically in dp_evoadapter.cpp.
 // All entries set to 0 before initialized by the first EvoMainLink constructor.
@@ -157,6 +160,7 @@ struct DP_REGKEY_DATABASE
     bool  bSkipSettingLinkStateDuringUnplug;
     bool  bEnableDevId;
     bool  bHDMIOnDPPlusPlus;
+    bool  bOptimizeDscBppForTunnellingBw;
 };
 
 extern struct DP_REGKEY_DATABASE dpRegkeyDatabase;

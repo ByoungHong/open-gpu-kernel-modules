@@ -109,7 +109,8 @@ const struct
     {NV_DP_REGKEY_ENABLE_LOWER_BPP_CHECK_FOR_DSC,        &dpRegkeyDatabase.bEnableLowerBppCheckForDsc,        DP_REG_VAL_BOOL},
     {NV_DP_REGKEY_SKIP_SETTING_LINK_STATE_DURING_UNPLUG, &dpRegkeyDatabase.bSkipSettingLinkStateDuringUnplug, DP_REG_VAL_BOOL},
     {NV_DP_REGKEY_EXPOSE_DSC_DEVID_WAR,                  &dpRegkeyDatabase.bEnableDevId,                      DP_REG_VAL_BOOL},
-    {NV_DP_REGKEY_HDMI_ON_DP_PLUS_PLUS,                  &dpRegkeyDatabase.bHDMIOnDPPlusPlus,                 DP_REG_VAL_BOOL}
+    {NV_DP_REGKEY_HDMI_ON_DP_PLUS_PLUS,                  &dpRegkeyDatabase.bHDMIOnDPPlusPlus,                 DP_REG_VAL_BOOL},
+    {NV_DP_REGKEY_OPTIMIZE_DSC_BPP_FOR_TUNNELLING_BW,    &dpRegkeyDatabase.bOptimizeDscBppForTunnellingBw,    DP_REG_VAL_BOOL}
 };
 
 EvoMainLink::EvoMainLink(EvoInterface * provider, Timer * timer) :

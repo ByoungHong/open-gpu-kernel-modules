@@ -2017,7 +2017,13 @@ NvBool nvHdmiDpySupportsFrl(const NVDpyEvoRec *pDpyEvo)
     NvU32 passiveDpDongleMaxPclkKHz;
     const NVDevEvoRec *pDevEvo = pDpyEvo->pDispEvo->pDevEvo;
 
-    nvAssert(nvDpyIsHdmiEvo(pDpyEvo));
+    /*
+     * Can't use FRL if HDMI is not supported by the GPU and the monitor
+     * connection.
+     */
+    if (!nvDpyIsHdmiEvo(pDpyEvo)) {
+        return FALSE;
+    }
 
     /* Can't use FRL if disabled by kernel module param. */
     if (nvkms_disable_hdmi_frl()) {

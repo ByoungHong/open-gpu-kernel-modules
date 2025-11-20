@@ -3807,6 +3807,31 @@ static NvBool SignalVrrSemaphore
     return status;
 }
 
+static NvBool CheckLutNotifier
+(
+    struct NvKmsKapiDevice *device,
+    NvU32 head,
+    NvBool waitForCompletion
+)
+{
+    NvBool status = NV_TRUE;
+    struct NvKmsCheckLutNotifierParams params = { };
+    params.request.deviceHandle = device->hKmsDevice;
+    params.request.dispHandle = device->hKmsDisp;
+    params.request.head = head;
+    params.request.waitForCompletion = waitForCompletion;
+    status = nvkms_ioctl_from_kapi(device->pKmsOpen,
+                                   NVKMS_IOCTL_CHECK_LUT_NOTIFIER,
+                                   &params, sizeof(params));
+
+    /*
+     * In cases where we're first enabling a head, we would expect status to be
+     * false, but in that case, there's no LUT notifier to wait for, so treat
+     * that case as complete.
+     */
+    return !status || params.reply.complete;
+}
+
 static void FramebufferConsoleDisabled
 (
     struct NvKmsKapiDevice *device
@@ -3913,6 +3938,7 @@ NvBool nvKmsKapiGetFunctionsTableInternal
     funcsTable->signalDisplaySemaphore = nvKmsKapiSignalDisplaySemaphore;
     funcsTable->cancelDisplaySemaphore = nvKmsKapiCancelDisplaySemaphore;
     funcsTable->signalVrrSemaphore = SignalVrrSemaphore;
+    funcsTable->checkLutNotifier = CheckLutNotifier;
 
     return NV_TRUE;
 }

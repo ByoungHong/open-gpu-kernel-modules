@@ -1263,43 +1263,66 @@ static NvBool ValidateModeTimings(
         }
     }
 
-    /* reject modes with too high pclk */
+    /*
+     * Reject modes with too high pclk, except when using HDMI FRL or
+     * DisplayPort. FRL and DP have features like DSC that cannot be trivially
+     * checked against a pixel clock rate limit. Instead:
+     *
+     * - DPlib will perform link assessment to determine whether both the
+     *   monitor and GPU can drive a particular bandwidth.
+     *
+     * - hdmipacket will perform the equivalent for FRL.
+     *
+     * TMDS will only be considered on a connection capable of HDMI FRL for the
+     * mode being validated if nvHdmiIsTmdsPossible returns TRUE in the
+     * following callpath:
+     *
+     *     ValidateMode
+     *     |_ ValidateModeTimings
+     *     |_ nvConstructHwModeTimingsEvo
+     *        |_ GetDfpProtocol
+     *           |_ GetDfpHdmiProtocol
+     *              |_ nvHdmiIsTmdsPossible
+     */
 
-    if ((overrides & NVKMS_MODE_VALIDATION_NO_MAX_PCLK_CHECK) == 0) {
+    if (!(nvHdmiDpySupportsFrl(pDpyEvo) ||
+          nvConnectorUsesDPLib(pDpyEvo->pConnectorEvo))) {
+        if ((overrides & NVKMS_MODE_VALIDATION_NO_MAX_PCLK_CHECK) == 0) {
 
-        NvU32 maxPixelClockKHz = pDpyEvo->maxPixelClockKHz;
-        NvU32 realPixelClock = HzToKHz(pModeTimings->pixelClockHz);
-        if (pModeTimings->yuv420Mode != NV_YUV420_MODE_NONE) {
-            realPixelClock /= 2;
-        }
-
-        if (realPixelClock > maxPixelClockKHz) {
-            NvU32 hdmi3DPixelClock = realPixelClock;
-
-            if (pModeTimings->hdmi3D) {
-                hdmi3DPixelClock /= 2;
+            NvU32 maxPixelClockKHz = pDpyEvo->maxPixelClockKHz;
+            NvU32 realPixelClock = HzToKHz(pModeTimings->pixelClockHz);
+            if (pModeTimings->yuv420Mode != NV_YUV420_MODE_NONE) {
+                realPixelClock /= 2;
             }
 
-            if (is3DVisionStereo &&
-                pDpyEvo->stereo3DVision.requiresModetimingPatching &&
-                (realPixelClock - maxPixelClockKHz < 5000)) {
+            if (realPixelClock > maxPixelClockKHz) {
+                NvU32 hdmi3DPixelClock = realPixelClock;
 
-                nvAssert(!pModeTimings->hdmi3D);
+                if (pModeTimings->hdmi3D) {
+                    hdmi3DPixelClock /= 2;
+                }
 
-                nvEvoLogInfoString(pInfoString,
-                    "PixelClock (" NV_FMT_DIV_1000_POINT_1 " MHz) is slightly higher than Display Device maximum (" NV_FMT_DIV_1000_POINT_1 " MHz), but is within tolerance for 3D Vision Stereo.",
-                    NV_VA_DIV_1000_POINT_1(realPixelClock),
-                    NV_VA_DIV_1000_POINT_1(maxPixelClockKHz));
+                if (is3DVisionStereo &&
+                    pDpyEvo->stereo3DVision.requiresModetimingPatching &&
+                    (realPixelClock - maxPixelClockKHz < 5000)) {
 
-            } else {
+                    nvAssert(!pModeTimings->hdmi3D);
 
-                LogModeValidationEnd(pDispEvo, pInfoString,
-                    "PixelClock (" NV_FMT_DIV_1000_POINT_1 " MHz%s) too high for Display Device (Max: " NV_FMT_DIV_1000_POINT_1 " MHz)",
-                    NV_VA_DIV_1000_POINT_1(hdmi3DPixelClock),
-                    pModeTimings->hdmi3D ?
-                    ", doubled for HDMI 3D" : "",
-                    NV_VA_DIV_1000_POINT_1(maxPixelClockKHz));
-                return FALSE;
+                    nvEvoLogInfoString(pInfoString,
+                        "PixelClock (" NV_FMT_DIV_1000_POINT_1 " MHz) is slightly higher than Display Device maximum (" NV_FMT_DIV_1000_POINT_1 " MHz), but is within tolerance for 3D Vision Stereo.",
+                        NV_VA_DIV_1000_POINT_1(realPixelClock),
+                        NV_VA_DIV_1000_POINT_1(maxPixelClockKHz));
+
+                } else {
+
+                    LogModeValidationEnd(pDispEvo, pInfoString,
+                        "PixelClock (" NV_FMT_DIV_1000_POINT_1 " MHz%s) too high for Display Device (Max: " NV_FMT_DIV_1000_POINT_1 " MHz)",
+                        NV_VA_DIV_1000_POINT_1(hdmi3DPixelClock),
+                        pModeTimings->hdmi3D ?
+                        ", doubled for HDMI 3D" : "",
+                        NV_VA_DIV_1000_POINT_1(maxPixelClockKHz));
+                    return FALSE;
+                }
             }
         }
     }

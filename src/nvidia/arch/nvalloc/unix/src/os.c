@@ -4948,6 +4948,18 @@ osGetRandomBytes
 }
 
 /*
+ * @brief Get current process flags..
+ */
+NvU32
+osGetCurrentProcessFlags
+(
+    void
+)
+{
+    return os_get_current_process_flags();
+}
+
+/*
  * @brief Allocate wait queue
  *
  * @param[out] ppWq        Wait queue

@@ -211,6 +211,11 @@ typedef struct RM_PAGEABLE_SECTION {
 #define OS_ALLOC_PAGES_NODE_NONE                0x0
 #define OS_ALLOC_PAGES_NODE_SKIP_RECLAIM        0x1
 
+// Flags needed by osGetCurrentProccessFlags
+#define OS_CURRENT_PROCESS_FLAG_NONE            0x0
+#define OS_CURRENT_PROCESS_FLAG_KERNEL_THREAD   0x1
+#define OS_CURRENT_PROCESS_FLAG_EXITING         0x2
+
 //
 // Structures for osPackageRegistry and osUnpackageRegistry
 //
@@ -722,6 +727,8 @@ NvS32 osImexChannelGet(NvU64 descriptor);
 NvS32 osImexChannelCount(void);
 
 NV_STATUS osGetRandomBytes(NvU8 *pBytes, NvU16 numBytes);
+
+NvU32 osGetCurrentProcessFlags(void);
 
 NV_STATUS osAllocWaitQueue(OS_WAIT_QUEUE **ppWq);
 void      osFreeWaitQueue(OS_WAIT_QUEUE *pWq);

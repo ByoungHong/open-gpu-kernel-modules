@@ -125,7 +125,7 @@ void ConnectorImpl2x::applyOuiWARs()
                 bStuffDummySymbolsFor8b10b = true;
             }
             break;
-        
+
     }
 }
 
@@ -513,16 +513,26 @@ void Edid::applyEdidWorkArounds(NvU32 warFlag, const DpMonitorDenylistData *pDen
 
         // LG
         case 0xE430:
-            if (ProductID == 0x0469)
+            switch (ProductID)
             {
-                //
-                // The LG display can't be driven at FHD with 2*RBR.
-                // Force max link config
-                //
-                this->WARFlags.forceMaxLinkConfig = true;
-                DP_PRINTF(DP_NOTICE, "DP-WAR> Force maximum link config WAR required on LG panel.");
-                DP_PRINTF(DP_NOTICE, "DP-WAR>   bug 1649626");
-                break;
+                case 0x0469:
+                {
+                    //
+                    // The LG display can't be driven at FHD with 2*RBR.
+                    // Force max link config
+                    //
+                    this->WARFlags.forceMaxLinkConfig = true;
+                    DP_PRINTF(DP_NOTICE, "DP-WAR> Force maximum link config WAR required on LG panel.");
+                    DP_PRINTF(DP_NOTICE, "DP-WAR>   bug 1649626");
+                    break;
+                }
+                case 0x06DB:
+                {
+                    this->WARFlags.useLegacyAddress = true;
+                    DP_PRINTF(DP_NOTICE, "DP-WAR> LG eDP");
+                    DP_PRINTF(DP_NOTICE, "implements only Legacy interrupt address range");
+                    break;
+                }
             }
             break;
         case 0x8F34:

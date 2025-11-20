@@ -280,6 +280,7 @@ struct gpuDevice
     NvU32              accessCounterBufferClass;
     NvBool             isTccMode;
     NvBool             isWddmMode;
+    NvBool             isMigDevice;
     struct gpuSession  *session;
     gpuFbInfo          fbInfo;
     gpuInfo            info;
@@ -1014,7 +1015,7 @@ static NvU64 makeDeviceDescriptorKey(const struct gpuDevice *device)
     NvU64 key = device->deviceInstance;
     NvU64 swizzid = device->info.smcSwizzId;
 
-    if (device->info.smcEnabled)
+    if (device->isMigDevice)
         key |= (swizzid << 32);
 
     return key;
@@ -2110,6 +2111,7 @@ NV_STATUS nvGpuOpsDeviceCreate(struct gpuSession *session,
     device->deviceInstance = gpuIdInfoParams.deviceInstance;
     device->subdeviceInstance = gpuIdInfoParams.subdeviceInstance;
     device->gpuId = gpuIdInfoParams.gpuId;
+    device->isMigDevice = bCreateSmcPartition;
 
     portMemCopy(&device->info, sizeof(device->info), pGpuInfo, sizeof(*pGpuInfo));
 

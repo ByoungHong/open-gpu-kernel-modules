@@ -234,6 +234,7 @@ typedef struct
      */
     NvU64                            assignedSwizzIdMask;
     NvU32                            fractionalMultiVgpu;
+    NvBool                           isPlacementIdInfoSet;
 } KERNEL_PHYS_GPU_INFO;
 
 /* vGPU info received from mdev kernel module for KVM */

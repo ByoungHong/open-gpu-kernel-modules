@@ -2073,6 +2073,22 @@ NV_STATUS NV_API_CALL os_get_random_bytes
     return NV_OK;
 }
 
+NvU32 NV_API_CALL os_get_current_process_flags
+(
+    void
+)
+{
+    NvU32 flags = OS_CURRENT_PROCESS_FLAG_NONE;
+
+    if (current->flags & PF_EXITING)
+        flags |= OS_CURRENT_PROCESS_FLAG_EXITING;
+
+    if (current->flags & PF_KTHREAD)
+        flags |= OS_CURRENT_PROCESS_FLAG_KERNEL_THREAD;
+
+    return flags;
+}
+
 NV_STATUS NV_API_CALL os_alloc_wait_queue
 (
     os_wait_queue **wq

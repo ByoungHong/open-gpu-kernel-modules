@@ -3076,6 +3076,10 @@ kvgpumgrSetSupportedPlacementIds(OBJGPU *pGpu)
     if (!pPgpuInfo->heterogeneousTimesliceSizesSupported && !pPgpuInfo->homogeneousPlacementSupported)
         return rmStatus;
 
+    /* skip placement Id calculation if already set */
+    if (pPgpuInfo->isPlacementIdInfoSet)
+        return rmStatus;
+
     hostChannelCount = kfifoChidMgrGetNumChannels(pGpu, pKernelFifo, pKernelFifo->ppChidMgr[0]);
 
     pKernelVgpuTypePlacementInfo = &pPgpuInfo->kernelVgpuTypePlacementInfo;
@@ -3229,6 +3233,9 @@ kvgpumgrSetSupportedPlacementIds(OBJGPU *pGpu)
                                              hostChannelCount);
         }
     }
+
+    if (rmStatus == NV_OK)
+        pPgpuInfo->isPlacementIdInfoSet = NV_TRUE;
 
     return rmStatus;
 }

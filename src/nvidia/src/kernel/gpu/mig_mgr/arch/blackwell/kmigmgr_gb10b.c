@@ -145,6 +145,10 @@ kmigmgrIsGPUInstanceFlagValid_GB10B
     NvU32 gfxSizeFlag = DRF_VAL(2080_CTRL_GPU, _PARTITION_FLAG,
                                     _GFX_SIZE, gpuInstanceFlag);
 
+    NV_CHECK_OR_RETURN(LEVEL_ERROR,
+        kmigmgrIsGPUInstanceFlagLegal(pGpu, pKernelMIGManager, gpuInstanceFlag),
+        NV_FALSE);
+
     if (!FLD_TEST_REF(NV2080_CTRL_GPU_PARTITION_FLAG_REQ_ALL_MEDIA, _DEFAULT, gpuInstanceFlag))
     {
         return NV_FALSE;
@@ -155,8 +159,6 @@ kmigmgrIsGPUInstanceFlagValid_GB10B
         case NV2080_CTRL_GPU_PARTITION_FLAG_MEMORY_SIZE_FULL:
             break;
         default:
-            NV_PRINTF(LEVEL_INFO, "Unrecognized GPU mem partitioning flag 0x%x\n",
-                      memSizeFlag);
             return NV_FALSE;
     }
 
@@ -167,8 +169,6 @@ kmigmgrIsGPUInstanceFlagValid_GB10B
         case NV2080_CTRL_GPU_PARTITION_FLAG_COMPUTE_SIZE_MINI_HALF:
             break;
         default:
-            NV_PRINTF(LEVEL_INFO, "Unrecognized GPU compute partitioning flag 0x%x\n",
-                      computeSizeFlag);
             return NV_FALSE;
     }
 
@@ -182,14 +182,7 @@ kmigmgrIsGPUInstanceFlagValid_GB10B
             break;
         case NV2080_CTRL_GPU_PARTITION_FLAG_GFX_SIZE_NONE:
             break;
-        // Cannot support these sizes since there is only one GFX Capable SYSPIPE
-        case NV2080_CTRL_GPU_PARTITION_FLAG_GFX_SIZE_HALF:
-        case NV2080_CTRL_GPU_PARTITION_FLAG_GFX_SIZE_MINI_HALF:
-        case NV2080_CTRL_GPU_PARTITION_FLAG_GFX_SIZE_QUARTER:
-        case NV2080_CTRL_GPU_PARTITION_FLAG_GFX_SIZE_EIGHTH:
         default:
-            NV_PRINTF(LEVEL_INFO, "Unrecognized GPU GFX partitioning flag 0x%x\n",
-                      gfxSizeFlag);
             return NV_FALSE;
     }
 

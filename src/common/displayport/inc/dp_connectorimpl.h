@@ -266,6 +266,12 @@ namespace DisplayPort
         //
         bool        bHDMIOnDPPlusPlus;
 
+        //
+        // Flag to enable accounting available DP tunnelling BW while generating PPS
+        // for the mode
+        //
+        bool        bOptimizeDscBppForTunnellingBw;
+
         bool        bSkipResetLinkStateDuringPlug;
 
         // Flag to check if LT should be skipped.

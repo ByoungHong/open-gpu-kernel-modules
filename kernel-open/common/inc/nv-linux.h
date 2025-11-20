@@ -1486,7 +1486,8 @@ typedef struct
 typedef struct nv_linux_state_s {
     nv_state_t nv_state;
 
-    atomic_t usage_count;
+    atomic_t   usage_count;
+
     NvU32    suspend_count;
 
     struct device  *dev;

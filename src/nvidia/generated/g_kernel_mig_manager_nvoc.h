@@ -1834,6 +1834,17 @@ static inline NV_STATUS kmigmgrGetSmallestGpuInstanceSize(OBJGPU *arg1, struct K
 #define kmigmgrGetSmallestGpuInstanceSize(arg1, arg2, pComputeSizeFlag) kmigmgrGetSmallestGpuInstanceSize_IMPL(arg1, arg2, pComputeSizeFlag)
 #endif //__nvoc_kernel_mig_manager_h_disabled
 
+NvBool kmigmgrIsGPUInstanceFlagLegal_IMPL(OBJGPU *arg1, struct KernelMIGManager *arg2, NvU32 gpuInstanceFlag);
+
+#ifdef __nvoc_kernel_mig_manager_h_disabled
+static inline NvBool kmigmgrIsGPUInstanceFlagLegal(OBJGPU *arg1, struct KernelMIGManager *arg2, NvU32 gpuInstanceFlag) {
+    NV_ASSERT_FAILED_PRECOMP("KernelMIGManager was disabled!");
+    return NV_FALSE;
+}
+#else //__nvoc_kernel_mig_manager_h_disabled
+#define kmigmgrIsGPUInstanceFlagLegal(arg1, arg2, gpuInstanceFlag) kmigmgrIsGPUInstanceFlagLegal_IMPL(arg1, arg2, gpuInstanceFlag)
+#endif //__nvoc_kernel_mig_manager_h_disabled
+
 NV_STATUS kmigmgrGetGPUInstanceScrubberCe_IMPL(OBJGPU *arg1, struct KernelMIGManager *arg2, Device *pDevice, NvU32 *ceInst);
 
 #ifdef __nvoc_kernel_mig_manager_h_disabled

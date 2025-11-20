@@ -590,6 +590,8 @@ static NV_STATUS _threadStateInitCommon(THREAD_STATE_NODE *pThreadNode, NvU32 fl
  */
 void threadStateInit(THREAD_STATE_NODE *pThreadNode, NvU32 flags)
 {
+    NvU32 osFlags;
+
     // Isrs should be using threadStateIsrInit().
     NV_ASSERT_OR_RETURN_VOID((flags & (THREAD_STATE_FLAGS_IS_ISR_LOCKLESS |
         THREAD_STATE_FLAGS_IS_ISR |
@@ -598,6 +600,14 @@ void threadStateInit(THREAD_STATE_NODE *pThreadNode, NvU32 flags)
     // Check to see if ThreadState is enabled
     if (!(threadStateDatabase.setupFlags & THREAD_STATE_SETUP_FLAGS_ENABLED))
         return;
+
+    osFlags = osGetCurrentProcessFlags();
+
+    if (osFlags & OS_CURRENT_PROCESS_FLAG_KERNEL_THREAD)
+        flags |= THREAD_STATE_FLAGS_IS_KERNEL_THREAD;
+
+    if (osFlags & OS_CURRENT_PROCESS_FLAG_EXITING)
+        flags |= THREAD_STATE_FLAGS_IS_EXITING;
 
     // Use common initialization logic (stack-allocated)
     // Note: Legacy void API ignores errors for backward compatibility

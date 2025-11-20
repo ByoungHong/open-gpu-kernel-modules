@@ -1559,6 +1559,26 @@ struct NvKmsKapiFunctionsTable {
         NvS32 index
     );
 
+    /*!
+     * Check or wait on a head's LUT notifier.
+     *
+     * \param [in]  device              A device allocated using allocateDevice().
+     *
+     * \param [in]  head                The head to check for LUT completion.
+     *
+     * \param [in]  waitForCompletion   If true, wait for the notifier in NvKms
+     *                                  before returning.
+     *
+     * \param [out] complete            Returns whether the notifier has completed.
+     */
+    NvBool
+    (*checkLutNotifier)
+    (
+        struct NvKmsKapiDevice *device,
+        NvU32 head,
+        NvBool waitForCompletion
+    );
+
     /*
      * Notify NVKMS that the system's framebuffer console has been disabled and
      * the reserved allocation for the old framebuffer console can be unmapped.

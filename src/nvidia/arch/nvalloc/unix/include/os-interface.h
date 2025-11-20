@@ -62,6 +62,11 @@ struct os_work_queue;
 /* Each OS defines its own version of this opaque type */
 typedef struct os_wait_queue os_wait_queue;
 
+/* Flags needed by os_get_current_proccess_flags */
+#define OS_CURRENT_PROCESS_FLAG_NONE            0x0
+#define OS_CURRENT_PROCESS_FLAG_KERNEL_THREAD   0x1
+#define OS_CURRENT_PROCESS_FLAG_EXITING         0x2
+
 /*
  * ---------------------------------------------------------------------------
  *
@@ -190,6 +195,7 @@ NV_STATUS   NV_API_CALL  os_open_readonly_file       (const char *, void **);
 NV_STATUS   NV_API_CALL  os_open_and_read_file       (const char *, NvU8 *, NvU64);
 NvBool      NV_API_CALL  os_is_nvswitch_present      (void);
 NV_STATUS   NV_API_CALL  os_get_random_bytes         (NvU8 *, NvU16);
+NvU32       NV_API_CALL  os_get_current_process_flags(void);
 NV_STATUS   NV_API_CALL  os_alloc_wait_queue         (os_wait_queue **);
 void        NV_API_CALL  os_free_wait_queue          (os_wait_queue *);
 void        NV_API_CALL  os_wait_uninterruptible     (os_wait_queue *);

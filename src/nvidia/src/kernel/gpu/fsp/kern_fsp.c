@@ -242,6 +242,7 @@ kfspStateUnload_IMPL
     NvU32      flags
 )
 {
+    kfspReleaseProxyImage(pGpu, pKernelFsp);
     return NV_OK;
 }
 

@@ -52,13 +52,13 @@
 #include "dp_tracing.h"
 
 /*
- * This is needed by Synaptics to disable DisplayExpand feature 
- * in some of their docking station based on if GPU supports DSC. 
+ * This is needed by Synaptics to disable DisplayExpand feature
+ * in some of their docking station based on if GPU supports DSC.
  * Feature is not needed if DSC is supported.
  * Customers reported problems with the feature enabled on GB20x devices
  * and requested GPU DSC detection to disable DisplayExpand feature.
  * DSC is supported in Turing and later SKUs hence
- * exposing Turing DevId to customers to address their requirement. 
+ * exposing Turing DevId to customers to address their requirement.
  */
 #define TURING_DEV_ID  0x1E
 
@@ -200,6 +200,7 @@ void ConnectorImpl::applyRegkeyOverrides(const DP_REGKEY_DATABASE& dpRegkeyDatab
     this->bSkipSettingLinkStateDuringUnplug = dpRegkeyDatabase.bSkipSettingLinkStateDuringUnplug;
     this->bEnableDevId                      = dpRegkeyDatabase.bEnableDevId;
     this->bHDMIOnDPPlusPlus                 = dpRegkeyDatabase.bHDMIOnDPPlusPlus;
+    this->bOptimizeDscBppForTunnellingBw    = dpRegkeyDatabase.bOptimizeDscBppForTunnellingBw;
 }
 
 void ConnectorImpl::setPolicyModesetOrderMitigation(bool enabled)
@@ -1202,12 +1203,14 @@ bool ConnectorImpl::compoundQueryAttachTunneling(const DpModesetParams &modesetP
     }
 
     NvU64 bpp = modesetParams.modesetInfo.depth;
+    NvU32 dscFactor = 1U;
+
     if (pDscParams->bEnableDsc)
     {
-        bpp = divide_ceil(pDscParams->bitsPerPixelX16, 16);
+        dscFactor = 16U;
     }
 
-    NvU64 modeBwRequired = modesetParams.modesetInfo.pixelClockHz * bpp;
+    NvU64 modeBwRequired = (modesetParams.modesetInfo.pixelClockHz * bpp)/dscFactor;
     NvU64 freeTunnelingBw = allocatedDpTunnelBw - compoundQueryUsedTunnelingBw;
 
     if (modeBwRequired > freeTunnelingBw)
@@ -1405,13 +1408,13 @@ bool ConnectorImpl::compoundQueryAttachMST(Group * target,
         {
             return false;
         }
-        
+
         compoundQueryResult = compoundQueryAttachMSTGeneric(target, modesetParams, &localInfo,
-                                                            pDscParams, pErrorCode);                                  
+                                                            pDscParams, pErrorCode);
         //
         // compoundQueryAttachMST Generic might fail due to the insufficient bandwidth ,
         // We only check whether bpp can be fit in the available bandwidth based on the tranied link config in compoundQueryAttachMSTDsc function.
-        // There might be cases where the default 10 bpp might fit in the available bandwidth based on the trained link config, 
+        // There might be cases where the default 10 bpp might fit in the available bandwidth based on the trained link config,
         // however, the bandwidth might be insufficient at the actual bottleneck link between source and sink to drive the mode, causing CompoundQueryAttachMSTGeneric to fail.
         // Incase of CompoundQueryAttachMSTGeneric failure, instead of returning false, check whether the mode can be supported with the max dsc compression bpp
         // and return true if it can be supported.
@@ -1694,7 +1697,7 @@ bool ConnectorImpl::compoundQueryAttachMSTDsc(Group * target,
         localInfo->localModesetInfo.bEnableDsc = true;
         localInfo->localModesetInfo.depth = bitsPerPixelX16;
         if (modesetParams.colorFormat == dpColorFormat_YCbCr422 &&
-            dev->dscCaps.dscDecoderColorFormatCaps.bYCbCrNative422 && 
+            dev->dscCaps.dscDecoderColorFormatCaps.bYCbCrNative422 &&
             (dscInfo.gpuCaps.encoderColorFormatMask & DSC_ENCODER_COLOR_FORMAT_Y_CB_CR_NATIVE_422) &&
             (dscInfo.sinkCaps.decoderColorFormatMask & DSC_DECODER_COLOR_FORMAT_Y_CB_CR_NATIVE_422))
         {
@@ -1863,11 +1866,11 @@ bool ConnectorImpl::compoundQueryAttachMSTGeneric(Group * target,
     }
 
     // If the compoundQueryResult is false, we need to reset the compoundQueryLocalLinkPBN
-    if (!compoundQueryResult && this->bEnableLowerBppCheckForDsc)   
+    if (!compoundQueryResult && this->bEnableLowerBppCheckForDsc)
     {
         compoundQueryLocalLinkPBN -= slots_pbn;
     }
-    
+
     return compoundQueryResult;
 }
 bool ConnectorImpl::compoundQueryAttachSST(Group * target,
@@ -1989,6 +1992,15 @@ bool ConnectorImpl::compoundQueryAttachSST(Group * target,
 
                 availableBandwidthBitsPerSecond = lc.convertMinRateToDataRate() * 8 * lc.lanes;
 
+                if (this-> bOptimizeDscBppForTunnellingBw && hal->isDpTunnelBwAllocationEnabled())
+                {
+                    NvU64 freeTunnelingBw = allocatedDpTunnelBw - compoundQueryUsedTunnelingBw;
+                    if (freeTunnelingBw < availableBandwidthBitsPerSecond)
+                    {
+                        availableBandwidthBitsPerSecond = freeTunnelingBw;
+                    }
+                }
+
                 warData.dpData.linkRateHz = lc.peakRate;
                 warData.dpData.bIs128b132bChannelCoding = lc.bIs128b132bChannelCoding;
 
@@ -2073,6 +2085,7 @@ bool ConnectorImpl::compoundQueryAttachSST(Group * target,
                     {
                         pDscParams->bEnableDsc = true;
                         compoundQueryResult = true;
+                        pDscParams->bitsPerPixelX16 = bitsPerPixelX16;
 
                         if (pDscParams->pDscOutParams != NULL)
                         {
@@ -2081,7 +2094,6 @@ bool ConnectorImpl::compoundQueryAttachSST(Group * target,
                             // possible with DSC and calculated PPS and bits per pixel.
                             //
                             dpMemCopy(pDscParams->pDscOutParams->PPS, PPS, sizeof(unsigned) * DSC_MAX_PPS_SIZE_DWORD);
-                            pDscParams->bitsPerPixelX16 = bitsPerPixelX16;
                         }
                         else
                         {
@@ -6088,7 +6100,7 @@ bool ConnectorImpl::allocateTimeslice(GroupImpl * targetGroup)
     // Check for available timeslots
     if (slot_count > freeSlots)
     {
-        DP_PRINTF(DP_ERROR, "DP-TS> Failed to allocate timeslot!! Not enough free slots. slot_count: %d, freeSlots: %d", 
+        DP_PRINTF(DP_ERROR, "DP-TS> Failed to allocate timeslot!! Not enough free slots. slot_count: %d, freeSlots: %d",
                   slot_count, freeSlots);
         return false;
     }
@@ -6758,7 +6770,9 @@ void ConnectorImpl::notifyLongPulseInternal(bool statusConnected)
 
     // Some panels whose TCON erroneously sets DPCD 0x200 SINK_COUNT=0.
     if (main->isEDP() && hal->getSinkCount() == 0)
+    {
         hal->setSinkCount(1);
+    }
 
     // disconnect all devices
     for (ListElement * i = activeGroups.begin(); i != activeGroups.end(); i = i->next) {
@@ -7433,7 +7447,7 @@ void ConnectorImpl::notifyShortPulse()
                 }
                 disableFlush();
             }
-            
+
             if (!this->bDisable5019537Fix)
             {
                 main->invalidateLinkRatesInFallbackTable(originalActiveLinkConfig.peakRate);
@@ -7499,7 +7513,7 @@ void ConnectorImpl::notifyShortPulse()
 
 bool ConnectorImpl::detectSinkCountChange()
 {
-    if (this->linkUseMultistream())
+    if (this->linkUseMultistream() || main->isEDP())
         return false;
 
     DeviceImpl * existingDev = findDeviceInList(Address());

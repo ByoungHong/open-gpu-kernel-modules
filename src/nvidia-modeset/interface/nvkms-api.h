@@ -221,6 +221,7 @@ enum NvKmsIoctlCommand {
     NVKMS_IOCTL_SET_CURSOR_IMAGE,
     NVKMS_IOCTL_MOVE_CURSOR,
     NVKMS_IOCTL_SET_LUT,
+    NVKMS_IOCTL_CHECK_LUT_NOTIFIER,
     NVKMS_IOCTL_IDLE_BASE_CHANNEL,
     NVKMS_IOCTL_FLIP,
     NVKMS_IOCTL_DECLARE_DYNAMIC_DPY_INTEREST,
@@ -2196,6 +2197,27 @@ struct NvKmsSetLutParams {
     struct NvKmsSetLutReply reply;     /*! out */
 };
 
+/*!
+ * NVKMS_IOCTL_CHECK_LUT_NOTIFIER: Check or wait on the LUT notifier for the
+ * specified apiHead.
+ */
+
+struct NvKmsCheckLutNotifierRequest {
+    NvKmsDeviceHandle deviceHandle;
+    NvKmsDispHandle dispHandle;
+    NvU32 head;
+
+    NvBool waitForCompletion;
+};
+
+struct NvKmsCheckLutNotifierReply {
+    NvBool complete;
+};
+
+struct NvKmsCheckLutNotifierParams {
+    struct NvKmsCheckLutNotifierRequest request; /*! in */
+    struct NvKmsCheckLutNotifierReply reply;     /*! out */
+};
 
 /*!
  * NVKMS_IOCTL_IDLE_BASE_CHANNEL: Wait for the base channel to be idle on
